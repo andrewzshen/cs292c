@@ -12,9 +12,18 @@ import Course.CourseLib
 
 variable (P Q R : Prop)
 
+theorem or_assoc_fwd (h : (P ∨ Q) ∨ R) : P ∨ (Q ∨ R) := by
+  cases h with
+  | inl hP => right; 
+  | inr hQ => left;  exact hQ
+
+theorem or_assoc_bwd := by
+  sorry
 
 theorem ex1_1 : (P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R) := by
-  sorry
+  constructor
+  · exact or_assoc_fwd
+  · exact or_assoc_bwd
 
 theorem ex1_2 : P ∧ (Q ∨ R) ↔ (P ∧ Q) ∨ (P ∧ R) := by
   sorry
