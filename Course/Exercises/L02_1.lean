@@ -12,35 +12,50 @@ import Course.CourseLib
 
 variable (P Q R : Prop)
 
-theorem or_assoc_fwd (h : (P ∨ Q) ∨ R) : P ∨ (Q ∨ R) := by
-  cases h with                                                                                                          
-  | inl hPQ =>
-    cases hPQ with 
-    | inl hP => left; exact hP
-    | inr hQ => right; left; exact hQ
-  | inr hR => right; right; exact hR
-
-theorem or_assoc_bwd (h : P ∨ (Q ∨ R)) : (P ∨ Q) ∨ R := by
-  cases h with
-  | inl hP => left; left; exact hP 
-  | inr hQR => 
-    cases hQR with    
-    | inl hQ => left; right; exact hQ
-    | inr hR => right; exact hR
-
 theorem ex1_1 : (P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R) := by
   constructor
-  · exact or_assoc_fwd P Q R
-  · exact or_assoc_bwd P Q R
-
-theorem and_distrib_fwd (h : P ∧ (Q \or R)) : (P \and Q) \or (P \and R) := by
-
+  · intro h -- Or associativity forward direction 
+    cases h with                                                                                                          
+    | inl hPQ =>
+      cases hPQ with 
+      | inl hP => left; exact hP
+      | inr hQ => right; left; exact hQ
+    | inr hR => right; right; exact hR
+  · intro h -- Or associativity backward direction 
+    cases h with
+    | inl hP => left; left; exact hP 
+    | inr hQR => 
+      cases hQR with    
+      | inl hQ => left; right; exact hQ
+      | inr hR => right; exact hR
 
 theorem ex1_2 : P ∧ (Q ∨ R) ↔ (P ∧ Q) ∨ (P ∧ R) := by
-  sorry
+  constructor
+  · intro h -- And distributivity over Or forward direction
+    obtain ⟨hP, hQR ⟩ := h
+    cases hQR with
+    | inl hQ => left;  exact ⟨hP, hQ ⟩  
+    | inr hR => right; exact ⟨hP, hR ⟩  
+  · intro h -- And distributivity over Or backward direction
+    cases h with
+    | inl hPQ =>
+      obtain ⟨hP, hQ ⟩ := hPQ 
+      constructor
+      · exact hP
+      · left; exact hQ
+    | inr hPR =>
+      obtain ⟨hP, hR ⟩ := hPR 
+      constructor
+      · exact hP
+      · right; exact hR
 
 theorem ex1_3 : (P → (Q → R)) ↔ (P ∧ Q → R) := by
-  sorry
+  constructor
+  · intro h hPQ -- Forward direction
+    obtain ⟨hP, hQ ⟩ := hPQ
+    exact h hP hQ
+  · intro h hP hQ -- Backward direction
+    exact h ⟨hP, hQ ⟩
 
 theorem ex1_4 : ((P ∨ Q) → R) ↔ (P → R) ∧ (Q → R) := by
   sorry
