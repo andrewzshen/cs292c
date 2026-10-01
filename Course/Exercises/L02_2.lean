@@ -13,7 +13,11 @@ import Course.CourseLib
 variable {α : Type} (A B C : Set α) (x : α)
 
 theorem ex2_1 : x ∈ A \ (A ∩ B) ↔ x ∈ A \ B := by
-  sorry
+  constructor
+  · intro h1
+    sorry
+  · intro h2
+    sorry
 
 theorem ex2_2 : x ∈ A ∪ (B ∩ C) ↔ x ∈ (A ∪ B) ∩ (A ∪ C) := by
   sorry
