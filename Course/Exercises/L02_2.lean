@@ -53,9 +53,15 @@ theorem ex2_2 : x ∈ A ∪ (B ∩ C) ↔ x ∈ (A ∪ B) ∩ (A ∪ C) := by
 theorem ex2_3 : x ∈ (A ∪ B) \ C ↔ x ∈ (A \ C) ∪ (B \ C) := by
   constructor
   · intro h
-    sorry
+    obtain ⟨hxA | hxB, hxnC⟩ := h   
+    · left
+      exact ⟨hxA, hxnC⟩ 
+    · right 
+      exact ⟨hxB, hxnC⟩ 
   · intro h
-    sorry
+    obtain ⟨hxA, hxnC⟩ | ⟨hxB, hxnC⟩ := h   
+    · exact ⟨Or.inl hxA, hxnC⟩     
+    · exact ⟨Or.inr hxB, hxnC⟩     
 
 /-
   HINT: depending on how you do the proof, you may find one or more of the
@@ -63,6 +69,25 @@ theorem ex2_3 : x ∈ (A ∪ B) \ C ↔ x ∈ (A \ C) ∪ (B \ C) := by
 theorem ex2_4 : x ∈ A ∪ (B \ C) ↔ x ∈ (A ∪ B) \ (C \ A) := by
   constructor
   · intro h
-    sorry
+    obtain hxA | ⟨hxB, hxnC⟩ := h  
+    · constructor
+      · left
+        exact hxA
+      · intro hxCA
+        exact hxCA.2 hxA 
+    · constructor 
+      · right
+        exact hxB
+      · intro hxCA 
+        exact hxnC hxCA.1 
   · intro h
-    sorry
+    obtain ⟨hxA | hxB, hxnCA⟩ := h 
+    · left
+      exact hxA
+    · by_cases hxA : x ∈ A 
+      · left
+        exact hxA 
+      · right
+        refine ⟨hxB, ?_⟩
+        intro hxC
+        exact hxnCA ⟨hxC, hxA⟩  
