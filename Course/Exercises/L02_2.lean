@@ -14,19 +14,55 @@ variable {α : Type} (A B C : Set α) (x : α)
 
 theorem ex2_1 : x ∈ A \ (A ∩ B) ↔ x ∈ A \ B := by
   constructor
-  · intro h1
-    sorry
-  · intro h2
-    sorry
+  · intro h
+    constructor
+    · exact h.1
+    · intro hxB
+      exact h.2 ⟨h.1, hxB⟩ 
+  · intro h
+    constructor
+    · exact h.1
+    · intro hxAB
+      exact h.2 hxAB.2
 
 theorem ex2_2 : x ∈ A ∪ (B ∩ C) ↔ x ∈ (A ∪ B) ∩ (A ∪ C) := by
-  sorry
+  constructor
+  · intro h
+    obtain hxA | ⟨hxB, hxC⟩ := h 
+    · constructor
+      · left
+        exact hxA
+      · left
+        exact hxA
+    · constructor
+      · right
+        exact hxB
+      · right
+        exact hxC
+  · intro h
+    obtain ⟨hxAB, hxAC⟩ := h 
+    obtain hxA | hxB := hxAB 
+    · left
+      exact hxA
+    · obtain hxA | hxC := hxAC 
+      · left
+        exact hxA
+      · right
+        exact ⟨hxB, hxC⟩
 
 theorem ex2_3 : x ∈ (A ∪ B) \ C ↔ x ∈ (A \ C) ∪ (B \ C) := by
-  sorry
+  constructor
+  · intro h
+    sorry
+  · intro h
+    sorry
 
 /-
   HINT: depending on how you do the proof, you may find one or more of the
   theorems in `L02_BasicProofs::USEFUL_THEOREMS` to be...well, useful -/
 theorem ex2_4 : x ∈ A ∪ (B \ C) ↔ x ∈ (A ∪ B) \ (C \ A) := by
-  sorry
+  constructor
+  · intro h
+    sorry
+  · intro h
+    sorry

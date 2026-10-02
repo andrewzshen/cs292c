@@ -18,36 +18,58 @@ theorem ex1_1 : (P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R) := by
     cases h with                                                                                                          
     | inl hPQ =>
       cases hPQ with 
-      | inl hP => left; exact hP
-      | inr hQ => right; left; exact hQ
-    | inr hR => right; right; exact hR
+      | inl hP => 
+        left
+        exact hP
+      | inr hQ => 
+        right 
+        left
+        exact hQ
+    | inr hR => 
+      right
+      right
+      exact hR
   · intro h -- Backward direction 
     cases h with
-    | inl hP => left; left; exact hP 
+    | inl hP => 
+      left
+      left
+      exact hP 
     | inr hQR => 
       cases hQR with    
-      | inl hQ => left; right; exact hQ
-      | inr hR => right; exact hR
+      | inl hQ => 
+        left
+        right
+        exact hQ
+      | inr hR => 
+        right
+        exact hR
 
 theorem ex1_2 : P ∧ (Q ∨ R) ↔ (P ∧ Q) ∨ (P ∧ R) := by
   constructor
   · intro h -- Forward direction
     obtain ⟨hP, hQR⟩ := h
     cases hQR with
-    | inl hQ => left;  exact ⟨hP, hQ⟩  
-    | inr hR => right; exact ⟨hP, hR⟩  
+    | inl hQ => 
+      left 
+      exact ⟨hP, hQ⟩  
+    | inr hR => 
+      right
+      exact ⟨hP, hR⟩  
   · intro h -- Backward direction
     cases h with
     | inl hPQ =>
       obtain ⟨hP, hQ⟩ := hPQ 
       constructor
       · exact hP
-      · left; exact hQ
+      · left
+        exact hQ
     | inr hPR =>
       obtain ⟨hP, hR⟩ := hPR 
       constructor
       · exact hP
-      · right; exact hR
+      · right
+        exact hR
 
 theorem ex1_3 : (P → (Q → R)) ↔ (P ∧ Q → R) := by
   constructor

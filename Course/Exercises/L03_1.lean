@@ -42,7 +42,9 @@ theorem ex3_1
   (ℓ : List ℕ) (n : ℕ)
   : sum (snoc ℓ n) = n + sum ℓ
 := by
-  sorry
+  induction ℓ with 
+  | nil => sorry
+  | cons x xs ih => sorry 
 
 theorem ex3_2
   (ℓ₁ ℓ₂ : List ℕ)
