@@ -31,7 +31,19 @@ theorem ex4_1
   (h1 : 0 < m) (h2 : R = { xy | let (x, y) := xy; x % m = y % m })
   : eqrel R
 := by
-  sorry
+  rw [h2, eqrel, is_refl]
+  whnf at *
+  constructor
+  · intro a
+    rw [h2]
+    rfl
+  · constructor
+    · intro a b 
+      constructor
+      · intro h 
+        rw [h]
+      · sorry 
+    · sorry
 
 theorem ex4_2
   (f : α → β) (R : SetRel α α)
