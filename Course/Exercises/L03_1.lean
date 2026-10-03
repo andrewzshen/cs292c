@@ -43,7 +43,9 @@ theorem ex3_1
   : sum (snoc ℓ n) = n + sum ℓ
 := by
   induction ℓ with 
-  | nil => sorry
+  | nil => 
+    unfold sum
+    
   | cons x xs ih => sorry 
 
 theorem ex3_2

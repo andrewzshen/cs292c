@@ -37,8 +37,8 @@ where
 
 /-
   One concept we've been seeing since the beginning: _comments_. This current
-  comment is a block comment that can span multiple lines. /- Unlike in many
-  languages, block comments can be nested -/-/
+  comment is a block comment that can span multiple lines. Unlike in many
+  languages, block comments can be nested -/
 
 -- And this is a single-line comment
 
