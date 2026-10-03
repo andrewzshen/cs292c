@@ -31,23 +31,45 @@ theorem ex4_1
   (h1 : 0 < m) (h2 : R = { xy | let (x, y) := xy; x % m = y % m })
   : eqrel R
 := by
-  rw [h2, eqrel, is_refl]
+  unfold eqrel is_refl is_symm is_trans
+  rw [h2] 
   whnf at *
   constructor
-  · intro a
-    rw [h2]
+  · intro a -- Reflexivity
     rfl
   · constructor
-    · intro a b 
+    · intro a b -- Symmetry 
       constructor
       · intro h 
+        whnf at * 
         rw [h]
-      · sorry 
-    · sorry
+      · intro h 
+        whnf at * 
+        rw [h]
+    · intro a b c hAB hBC -- Transitivity
+      whnf at *
+      rw [hAB, hBC] 
 
 theorem ex4_2
   (f : α → β) (R : SetRel α α)
   (h1 : R = { xy | let (x, y) := xy; f x = f y })
   : eqrel R
 := by
-  sorry
+  unfold eqrel is_refl is_symm is_trans
+  rw [h1] 
+  whnf at *
+  constructor
+  · intro a -- Reflexivity
+    rfl
+  · constructor
+    · intro a b -- Symmetry 
+      constructor
+      · intro h 
+        whnf at * 
+        rw [h]
+      · intro h 
+        whnf at * 
+        rw [h]
+    · intro a b c hAB hBC -- Transitivity
+      whnf at *
+      rw [hAB, hBC] 
