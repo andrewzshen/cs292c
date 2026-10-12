@@ -23,23 +23,26 @@ open INSERTION_SORT_P2 (sorted empty_sorted singleton_sorted head_sorted
   -----------------------------------------------------------
 -/
 
+@[grind, simp]
 def select_min (n : ℕ) (ℓ : List ℕ) : ℕ × (List ℕ) :=
   let min := (n :: ℓ).minimum_of_length_pos (by simp)
   (min, (n :: ℓ).erase min)
 
+@[grind ., simp]
 lemma select_min_size
   (n : ℕ) (ℓ : List ℕ)
   : let (_, ℓ₁) := select_min n ℓ
     ℓ₁.length = ℓ.length
-:= by simp [select_min, List.minimum_of_length_pos_mem]
+:= by simp [List.minimum_of_length_pos_mem]
 
+@[grind, simp]
 def selection_sort : List ℕ → List ℕ
   | [] => []
   | x :: xs =>
     let mr := select_min x xs
     mr.1 :: (selection_sort mr.2)
 termination_by ℓ => ℓ.length
-decreasing_by simp_all [select_min_size x xs]
+decreasing_by grind
 
 lemma select_min_perm
   (n : ℕ) (ℓ : List ℕ)
