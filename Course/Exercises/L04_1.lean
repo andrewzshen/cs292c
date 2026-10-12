@@ -52,19 +52,30 @@ theorem split_correct
   : let (ℓ₁, ℓ₂) := split ℓ
     (ℓ₁ ++ ℓ₂).Perm ℓ
 := by
-  sorry
+  simp [split] 
 
 lemma merge_perm
   (ℓ₁ ℓ₂ : List ℕ)
   : (merge ℓ₁ ℓ₂).Perm (ℓ₁ ++ ℓ₂)
 := by
-  sorry
+  fun_induction merge ℓ₁ ℓ₂ with
+  | case1 => simp
+  | case2 x ℓ₂ => simp
+  | case3 x ℓ₁ y ℓ₂ h ih₁ => sorry
+  | case4 => sorry  
 
 lemma merge_sorted
   {ℓ₁ ℓ₂ : List ℕ}
   : sorted ℓ₁ → sorted ℓ₂ → sorted (merge ℓ₁ ℓ₂)
 := by
-  sorry
+  fun_induction merge ℓ₁ ℓ₂
+  · intro _ h
+    exact h
+  · intro h _
+    exact h
+  · rename_i x ℓ₁ y ℓ₂ ih₁ ih₂ h₁ h₂
+    unfold merge 
+      
 
 lemma merge_sort_perm
   (ℓ : List ℕ)
