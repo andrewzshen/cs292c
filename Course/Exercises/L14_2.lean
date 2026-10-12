@@ -31,8 +31,7 @@ lemma select_min_size
   (n : ℕ) (ℓ : List ℕ)
   : let (_, ℓ₁) := select_min n ℓ
     ℓ₁.length = ℓ.length
-:= by
-  sorry
+:= by simp [select_min, List.minimum_of_length_pos_mem]
 
 def selection_sort : List ℕ → List ℕ
   | [] => []

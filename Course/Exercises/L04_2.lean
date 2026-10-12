@@ -34,17 +34,12 @@ def select_min (n : ℕ) (ℓ : List ℕ) : ℕ × (List ℕ) :=
   (min, (n :: ℓ).erase min)
 
 /-
-  HINT: A useful theorem for proving `select_min_size` -/
-#check List.minimum_of_length_pos_mem
-
-/-
   A useful lemma for helping to prove termination of `selection_sort` below -/
 lemma select_min_size
   (n : ℕ) (ℓ : List ℕ)
   : let (_, ℓ₁) := select_min n ℓ
     ℓ₁.length = ℓ.length
-:= by
-  sorry
+:= by simp [select_min, List.minimum_of_length_pos_mem]
 
 /-
   The selection sort algorithm -/
