@@ -40,8 +40,7 @@ def selection_sort : List ℕ → List ℕ
     let mr := select_min x xs
     mr.1 :: (selection_sort mr.2)
 termination_by ℓ => ℓ.length
-decreasing_by
-  sorry
+decreasing_by simp_all [select_min_size x xs]
 
 lemma select_min_perm
   (n : ℕ) (ℓ : List ℕ)

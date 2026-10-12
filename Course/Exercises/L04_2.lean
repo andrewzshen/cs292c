@@ -5,8 +5,7 @@
 
   ## INSTRUCTIONS
 
-  Fill in the `sorry` for the theorems below, as well as the `decreasing_by`
-  clause for `selection_sort`.
+  Fill in the `sorry` for the theorems below.
 -/
 
 import Course.CourseLib
@@ -55,8 +54,7 @@ def selection_sort : List ℕ → List ℕ
     let mr := select_min x xs
     mr.1 :: (selection_sort mr.2)
 termination_by ℓ => ℓ.length
-decreasing_by
-  sorry
+decreasing_by simp_all [select_min_size x xs]
 
 /-
   HINT: Some useful theorems for the lemmas below (along with the theorems
