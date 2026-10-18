@@ -1098,6 +1098,76 @@ end_subtopic AXIOM
 end_topic MISC
 
 
+topic::DEBUGGING
+/-
+  Debugging issues with Lean proofs and functions can be mysterious. We provide
+  a few tips to help. The first tip will be useful when Lean's syntactic sugar
+  is obscuring some information that would be helpful in diagnosing a problem
+  (e.g., when two things look identical but do not behave as if they _are_
+  identical). -/
+
+/-
+  The `set_option` command is used to set various Lean options. The option we
+  are interested in is called `pp`, for "pretty printer". By default Lean
+  pretty-prints everything it shows in the infoview, but doing so can obscure
+  what's really happening. We can configure the pretty-printer using
+  `set_option`, either entirely or just for certain things. Using the command
+  `set_option <id> <value>` will set the option with the given value for the
+  entire current section or namespace (or the entire file if it is not in a
+  section or namespace); we can restrict it to just the next line using the
+  command `set_option <id> <value> in ...`. -/
+
+/-
+  Here is an example where we have turned of _all_ pretty-printing. As you can
+  see, the output is extremely verbose, but there is no hidden information at
+  all. This is the nuclear option, usually we don't want or need to see all of
+  it, only certain parts. -/
+set_option pp.all true in
+#check 1 + 2
+
+/-
+  We can selectively turn off pretty-printing using various subfields of `pp`.
+  `pp.numericTypes` will always display type information for all numeric values,
+  which can help a lot when, e.g., one number is `ℕ` and one is `ℤ`, and so they
+  look the same but are not considered equal. -/
+set_option pp.numericTypes true in
+#check 1 + 2
+
+/-
+  We can also have Lean explicitly mark all type coercions so that we can see
+  where they are happening. -/
+set_option pp.coercions true in
+example (n : ℕ) : (n : ℤ) = n := rfl
+
+/-
+  Using `pp.explicit` gives more information, but still less than `pp.all`; it
+  will explicitly display all implicit arguments and type class instances. If
+  two terms look the same but you can't use them as if they _are_ the same,
+  `pp.explicit` will usually tell you what's going on. -/
+set_option pp.explicit true in
+#check 1 + 2
+
+/-
+  Use auto-complete to see all of the available `pp.*` options -/
+
+/-
+  The next tip will help when debugging functions. We haven't talked about I/O
+  (e.g., reading or printing to standard out) because doing so depends on the IO
+  monad. You can't use print statements to trace the execution of your code in a
+  pure function (i.e., one that isn't in the IO monad), but you can use
+  `dbg_trace` to print output to the infoview. -/
+
+def fact (n : ℕ) :=
+  if n = 0 then dbg_trace "fact: 0"; 0
+  else
+    dbg_trace s!"fact: {n}"
+    n * fact (n-1)
+
+#eval fact 4
+
+end_topic DEBUGGING
+
+
 topic::TACTICS_REFERENCE
 /-
   - `decide`: if the goal is within a decidable theory, algorithmically determine whether the goal is true or false (see `L15::DECIDABLE` for more information)

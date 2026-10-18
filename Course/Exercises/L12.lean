@@ -11,20 +11,31 @@ import Course.L12_DExpLang
 open DExpLang
 
 inductive DStmt where
-/-
-  ## INSTRUCTIONS
-  Define the constructors of `DStmt` so that it uses `DExp` instead of `Exp` and
-  guarantees that (1) for assignments, the type of the variable is the same as
-  the type of the right-hand side; and (2) the types of the guards for
-  conditionals and loops is guaranteed to be `Bool`.
--/
+  | skip    : DStmt
+  | assign  : (x : Var) → DExp x.type_of → DStmt
+  | seq     : DStmt → DStmt → DStmt
+  | ifelse  : DExp Bool → DStmt → DStmt → DStmt
+  | whiledo : DExp Bool → DStmt → DStmt
 
 inductive BigstepS : DState → DStmt → DState → Prop
-/-
-  ## INSTRUCTIONS
-  Define the constructors of `BigstepS` on `DStmt` (it will be very much like
-  the original given in `L08`, except that `DExp` cannot evaluate to `error`)
--/
+  | skip σ : BigstepS σ .skip σ
+  | assign {σ₁ σ₂ x rhs v}:
+      BigstepE σ₁ rhs v → σ₂ = σ₁.insert x v →
+      BigstepS σ₁ (.assign x rhs) σ₂
+  | seq {σ₁ σ₂ σ₃ s₁ s₂}:
+      BigstepS σ₁ s₁ σ₂ → BigstepS σ₂ s₂ σ₃ →
+      BigstepS σ₁ (.seq s₁ s₂) σ₃
+  | ifelse_tt {σ₁ σ₂ g tt ff} :
+      BigstepE σ₁ g true → BigstepS σ₁ tt σ₂ →
+      BigstepS σ₁ (.ifelse g tt ff) σ₂
+  | ifelse_ff {σ₁ σ₂ g tt ff} :
+      BigstepE σ₁ g false → BigstepS σ₁ ff σ₂ →
+      BigstepS σ₁ (.ifelse g tt ff) σ₂
+  | whiledo_tt {σ₁ σ₂ σ₃ g body} :
+      BigstepE σ₁ g true → BigstepS σ₁ body σ₂ →
+      BigstepS σ₂ (.whiledo g body) σ₃ → BigstepS σ₁ (.whiledo g body) σ₃
+  | whiledo_ff {σ g body} :
+      BigstepE σ g false → BigstepS σ (.whiledo g body) σ
 
 /-
   ## INSTRUCTIONS

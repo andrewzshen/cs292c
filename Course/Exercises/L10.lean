@@ -3,8 +3,8 @@
 
   The three topics below each implement vectors (lists of a given length) in a
   different way, all based on dependent types. Fill in the `sorry` for each
-  definition in each topic. The `#guard_msgs` should all pass without errors.
--/
+  definition in each topic. The `#guard_msgs` in `L10_tests.lean` should all
+  pass without errors. -/
 
 import Course.CourseLib
 
@@ -50,36 +50,6 @@ def replicate (a : α) (num : ℕ) : Vec α num :=
 def filter {n: ℕ} (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
   sorry
 
-/- --- TESTS --- -/
-
-def v₁ : Vec ℕ 3 := .cons 1 (.cons 2 (cons 3 .nil))
-def v₂ : Vec ℕ 2 := .cons 4 (.cons 5 .nil)
-def v₃ : Vec Bool 3 := .cons true (.cons false (cons true .nil))
-
-/-- info: 3 -/
-#guard_msgs in
-#eval v₁.tail.tail.head
-
-/-- info: 2 -/
-#guard_msgs in
-#eval v₁.get (1 : Fin 3)
-
-/-- info: (1, true) -/
-#guard_msgs in
-#eval (v₁.zip v₃).head
-
-/-- info: 4 -/
-#guard_msgs in
-#eval (v₁.append v₂).get (3 : Fin 5)
-
-/-- info: "a" -/
-#guard_msgs in
-#eval (replicate "a" 3).get (2 : Fin 3)
-
-/-- info: 2 -/
-#guard_msgs in
-#eval (v₁.filter (· ≤ 2)).1
-
 end Vec
 end_topic V1
 
@@ -115,36 +85,6 @@ def replicate (a : α) (num : ℕ) : Vec α num :=
 def filter (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
   sorry
 
-/- --- TESTS --- -/
-
-def v₁ : Vec ℕ 3 := Vec.mk [1, 2, 3] (by simp)
-def v₂ : Vec ℕ 2 := Vec.mk [4, 5] (by simp)
-def v₃ : Vec Bool 3 := Vec.mk [true, false, true] (by simp)
-
-/-- info: 3 -/
-#guard_msgs in
-#eval v₁.tail.tail.head
-
-/-- info: 2 -/
-#guard_msgs in
-#eval v₁.get (1 : Fin 3)
-
-/-- info: (1, true) -/
-#guard_msgs in
-#eval (v₁.zip v₃).head
-
-/-- info: 4 -/
-#guard_msgs in
-#eval (v₁.append v₂).get (3 : Fin 5)
-
-/-- info: "a" -/
-#guard_msgs in
-#eval (replicate "a" 3).get (2 : Fin 3)
-
-/-- info: 2 -/
-#guard_msgs in
-#eval (v₁.filter (· ≤ 2)).1
-
 end Vec
 end_topic V2
 
@@ -177,45 +117,6 @@ def replicate (a : α) (num : ℕ) : Vec α num :=
 
 def filter (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
   sorry
-
-/- --- TESTS --- -/
-
-def v₁ : Vec ℕ 3 := fun n =>
-  if n = 0 then 1
-  else if n = 1 then 2
-  else 3
-
-def v₂ : Vec ℕ 2 := fun n =>
-  if n = 0 then 4
-  else 5
-
-def v₃ : Vec Bool 3 := fun n =>
-  if n = 0 || n = 2 then true
-  else false
-
-/-- info: 3 -/
-#guard_msgs in
-#eval v₁.tail.tail.head
-
-/-- info: 2 -/
-#guard_msgs in
-#eval v₁.get (1 : Fin 3)
-
-/-- info: (1, true) -/
-#guard_msgs in
-#eval (v₁.zip v₃).head
-
-/-- info: 4 -/
-#guard_msgs in
-#eval (v₁.append v₂).get (3 : Fin 5)
-
-/-- info: "a" -/
-#guard_msgs in
-#eval (replicate "a" 3).get (2 : Fin 3)
-
-/-- info: 2 -/
-#guard_msgs in
-#eval (v₁.filter (· ≤ 2)).1
 
 end Vec
 end_topic V3

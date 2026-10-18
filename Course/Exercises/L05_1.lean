@@ -7,8 +7,7 @@ import Course.CourseLib
 /-
   ## INSTRUCTIONS
 
-  Prove that `qsort` terminates. You may add a `termination_by` clause if you
-  think it makes sense to do so.
+  Prove that `qsort` terminates by filling in the `sorry` in the lemmas below
 -/
 
 /-
@@ -16,11 +15,24 @@ import Course.CourseLib
 #check List.partition_eq_filter_filter
 #check List.length_filter_le
 
+lemma qsort_term1
+  (x : ℕ) (xs : List ℕ)
+  : (List.partition (· ≤ x) xs).1.length < (x :: xs).length
+:= by
+  sorry
+
+theorem qsort_term2
+  (x : ℕ) (xs : List ℕ)
+  : (List.partition (· ≤ x) xs).2.length < (x :: xs).length
+:= by
+  sorry
+
 def qsort : List ℕ → List ℕ
   | [] => []
   | x :: xs =>
     let ℓs := xs.partition (· ≤ x)
     qsort ℓs.1 ++ [x] ++ qsort ℓs.2
+termination_by ℓ => ℓ.length
 decreasing_by
-  sorry
-  sorry
+  · exact qsort_term1 x xs
+  · exact qsort_term2 x xs

@@ -380,20 +380,6 @@ example (h : A → B) : ¬A ∨ B := by
 
   - Finally, you could just guess the theorem name and see if it exists. This strategy isn't as silly as it sounds because Mathlib has very strict rules about how theorems are named that make the names fairly easy to guess (once you've internalized the rules): https://leanprover-community.github.io/contribute/naming.html.
 -/
-
-/-
-  Look for theorems that involve both a disjunction and a negation of the left
-  disjunct -/
-#loogle ?a ∨ ?b, ¬?a
-
-/-
-  Look for theorems whose names contain the strings "Or" and "resolve" -/
-#loogle "Or", "resolve"
-
-/-
-  A natural language search-/
-#leansearch "a or b is the same as not a implies b."
-
 end_subtopic USEFUL_THEOREMS
 end_topic PROPOSITIONAL_LOGIC
 
