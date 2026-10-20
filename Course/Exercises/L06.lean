@@ -15,7 +15,7 @@ variable {α β γ : Type}
   Curry a function, i.e., instead of taking a pair of arguments it takes one
   argument at a time -/
 def curry (f : (α × β) → γ) : α → β → γ :=
-  sorry
+  fun a b => f (a, b) 
 
 /-- info: true -/
 #guard_msgs in
@@ -25,7 +25,7 @@ def curry (f : (α × β) → γ) : α → β → γ :=
   Uncurry a function, i.e., instead of taking one argument at a time it takes a
   pair of arguments -/
 def uncurry (f : α → β → γ) : (α × β) → γ :=
-  sorry
+  fun (a, b) => f a b 
 
 /-- info: true -/
 #guard_msgs in
@@ -57,7 +57,9 @@ def ℓ₄ : MyList := .cons 3 (.cons 2 (.cons 1 .nil))
   of the list and returns a new result, and the initial value (also the result
   if the list is empty). -/
 def fold {α : Type} (ℓ : MyList) (f : α → ℤ → α) (init : α) : α :=
-  sorry
+  match ℓ with
+  | nil => init 
+  | cons h t => fold t f (f init h) 
 
 /-- info: 6 -/
 #guard_msgs in
@@ -73,7 +75,7 @@ def fold {α : Type} (ℓ : MyList) (f : α → ℤ → α) (init : α) : α :=
 /-
   Returns the reverse of `ℓ` -/
 def reverse (ℓ : MyList) : MyList :=
-  sorry
+  ℓ.fold (fun acc x => .cons x acc) .nil
 
 /-- info: true -/
 #guard_msgs in
@@ -82,7 +84,7 @@ def reverse (ℓ : MyList) : MyList :=
 /-
   Returns `ℓ₁ ++ ℓ₂` -/
 def append (ℓ₁ ℓ₂ : MyList) : MyList :=
-  sorry
+  fold (reverse ℓ₁) (fun acc x => .cons x acc) ℓ₂
 
 /-- info: true -/
 #guard_msgs in
@@ -91,7 +93,7 @@ def append (ℓ₁ ℓ₂ : MyList) : MyList :=
 /-
   Returns whether any of the elements satisfy the predicate -/
 def any (ℓ : MyList) (P : ℤ → Bool) : Bool :=
-  sorry
+  ℓ.fold (fun acc x => acc || P x) False
 
 /-- info: true -/
 #guard_msgs in
@@ -104,7 +106,7 @@ def any (ℓ : MyList) (P : ℤ → Bool) : Bool :=
 /-
   Returns whether all of the elements satisfy the predicate -/
 def all (ℓ : MyList) (P : ℤ → Bool) : Bool :=
-  sorry
+  ℓ.fold (fun acc x => acc && P x) True
 
 /-- info: true -/
 #guard_msgs in
@@ -117,7 +119,7 @@ def all (ℓ : MyList) (P : ℤ → Bool) : Bool :=
 /-
   Returns those elements that satisfy the predicate -/
 def filter (ℓ : MyList) (P : ℤ → Bool) : MyList :=
-  sorry
+  ℓ.fold (fun acc x => if P x then .cons x acc else acc) .nil
 
 /-- info: true -/
 #guard_msgs in
@@ -137,7 +139,18 @@ topic::P3
   should pass with no errors. You may define nested helper functions if you find
   them helpful. -/
 def word_count (ℓ : List String) : List (String × ℕ) :=
-  sorry
+  aux [] ℓ
+where
+  aux (acc : List (String × ℕ)) (ℓ : List String) : List (String × ℕ) :=
+    match ℓ with
+    | [] => acc
+    | x :: xs =>
+      let rec update (ℓ' : List (String × ℕ)) : List (String × ℕ) :=
+        match ℓ' with
+        | [] => [(x, 1)]
+        | (key, count) :: ys =>
+          if key == x then (key, count + 1) :: ys else (key, count) :: update ys
+      aux (update acc) xs 
 
 /-- info: true -/
 #guard_msgs in
@@ -198,7 +211,9 @@ def t₃ : Tree :=
 /-
   Returns whether `n` is an element of the tree -/
 def mem (t : Tree) (n : ℕ) : Bool :=
-  sorry
+  match t with
+  | leaf x => n == x
+  | node x l r => n == x || mem l n || mem r n
 
 /-- info: true -/
 #guard_msgs in
@@ -211,7 +226,12 @@ def mem (t : Tree) (n : ℕ) : Bool :=
 /-
   Outputs a pre-order list of tree elements -/
 def toList₁ (t : Tree) : List ℕ :=
-  sorry
+  aux [] t
+where
+  aux (acc : List ℕ) (t : Tree) : List ℕ :=
+    match t with
+    | leaf x => x :: acc
+    | node x l r => x :: aux (aux acc r) l
 
 /-- info: true -/
 #guard_msgs in
@@ -220,7 +240,12 @@ def toList₁ (t : Tree) : List ℕ :=
 /-
   Outputs a post-order list of tree elements -/
 def toList₂ (t : Tree) : List ℕ :=
-  sorry
+  aux [] t
+where
+  aux (acc : List ℕ) (t : Tree) : List ℕ :=
+    match t with
+    | leaf x => x :: acc
+    | node x l r => aux (aux (x :: acc) r) l
 
 /-- info: true -/
 #guard_msgs in
@@ -229,7 +254,12 @@ def toList₂ (t : Tree) : List ℕ :=
 /-
   Outputs an in-order list of tree elements -/
 def toList₃ (t : Tree) : List ℕ :=
-  sorry
+  aux [] t
+where
+  aux (acc : List ℕ) (t : Tree) : List ℕ :=
+    match t with
+    | leaf x => x :: acc
+    | node x l r => aux (x :: aux acc r) l
 
 /-- info: true -/
 #guard_msgs in
@@ -238,7 +268,9 @@ def toList₃ (t : Tree) : List ℕ :=
 /-
   Maps each tree element to a new element according to `f` -/
 def map (t : Tree) (f : ℕ → ℕ) : Tree :=
-  sorry
+  match t with
+  | leaf x => .leaf (f x)
+  | node x l r => .node (f x) (map l f) (map r f)
 
 /-- info: true -/
 #guard_msgs in
@@ -250,7 +282,12 @@ def map (t : Tree) (f : ℕ → ℕ) : Tree :=
   value at the node. `init` is now a function `leaf` that takes the value at a
   leaf. -/
 def fold {α : Type} (t : Tree) (f : α → α → ℕ → α) (leaf : ℕ → α) : α :=
-  sorry
+  match t with
+  | .leaf x => leaf x
+  | node x l r =>
+    let accₗ := fold l f leaf
+    let accᵣ := fold r f leaf
+    f accₗ accᵣ x 
 
 /-- info: 91 -/
 #guard_msgs in
@@ -261,7 +298,9 @@ def fold {α : Type} (t : Tree) (f : α → α → ℕ → α) (leaf : ℕ → �
   value of each node as its identifier). HINT: use the `fold` that you
   implemented above. -/
 def paths (t : Tree) : List (List ℕ) :=
-  sorry
+  t.fold 
+    (fun pathsₗ pathsᵣ x => (pathsₗ ++ pathsᵣ).map (fun path => x :: path)) 
+    (fun x => [[x]]) 
 
 /-- info: true -/
 #guard_msgs in

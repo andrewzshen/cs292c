@@ -5,8 +5,7 @@
 
   ## INSTRUCTIONS
 
-  Fill in the `sorry` for the theorems below, as well as the `decreasing_by`
-  clause for `selection_sort`.
+  Fill in the `sorry` for the theorems below.
 -/
 
 import Course.CourseLib
@@ -35,17 +34,12 @@ def select_min (n : ℕ) (ℓ : List ℕ) : ℕ × (List ℕ) :=
   (min, (n :: ℓ).erase min)
 
 /-
-  HINT: A useful theorem for proving `select_min_size` -/
-#check List.minimum_of_length_pos_mem
-
-/-
   A useful lemma for helping to prove termination of `selection_sort` below -/
 lemma select_min_size
   (n : ℕ) (ℓ : List ℕ)
   : let (_, ℓ₁) := select_min n ℓ
     ℓ₁.length = ℓ.length
-:= by
-  sorry
+:= by simp [select_min, List.minimum_of_length_pos_mem]
 
 /-
   The selection sort algorithm -/
@@ -55,8 +49,7 @@ def selection_sort : List ℕ → List ℕ
     let mr := select_min x xs
     mr.1 :: (selection_sort mr.2)
 termination_by ℓ => ℓ.length
-decreasing_by
-  sorry
+decreasing_by simp_all [select_min_size x xs]
 
 /-
   HINT: Some useful theorems for the lemmas below (along with the theorems
@@ -77,23 +70,35 @@ lemma select_min_perm
   : let (n₁, ℓ₁) := select_min n ℓ
     (n₁ :: ℓ₁).Perm (n :: ℓ)
 := by
-  sorry
+  exact (List.perm_cons_erase (List.minimum_of_length_pos_mem _)).symm
 
 lemma select_min_smallest
   (n : ℕ) (ℓ : List ℕ)
   : let (n₁, _) := select_min n ℓ
     (∀ m ∈ (n :: ℓ), n₁ ≤ m)
 := by
-  sorry
+  simp only [select_min]
+  intro m hm
+  exact List.minimum_of_length_pos_le_of_mem hm _ 
 
 lemma selection_sort_perm
   (ℓ : List ℕ)
   : (selection_sort ℓ).Perm ℓ
 := by
-  sorry
+  fun_induction selection_sort ℓ with
+  | case1 => rfl
+  | case2 x xs mr ih =>
+    exact (ih.cons _).trans (select_min_perm x xs)
 
 lemma selection_sort_sorted
   (ℓ : List ℕ)
   : sorted (selection_sort ℓ)
 := by
-  sorry
+  fun_induction selection_sort ℓ with
+  | case1 => simp [sorted]
+  | case2 x xs mr ih =>
+    rw [sorted, List.pairwise_cons]
+    refine ⟨fun m hm => ?_, ih⟩
+    have hm' : m ∈ (select_min x xs).2 := (selection_sort_perm _).mem_iff.mp hm
+    simp only [select_min] at hm'
+    exact select_min_smallest x xs m (List.mem_of_mem_erase hm')
