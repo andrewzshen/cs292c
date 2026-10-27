@@ -20,7 +20,38 @@ theorem HasType.deterministic
   {Γ : Env} {e : Exp} {τ₁ τ₂ : Ty}
   : HasType Γ e τ₁ → HasType Γ e τ₂ → τ₁ = τ₂
 := by
-  sorry
+  intro h₁ h₂
+  match h₁, h₂ with
+  | .int, .int | .bool, .bool 
+  | .neg _, .neg _ | .not _, .not _ => rfl
+
+  | .var h₁_lookup, .var h₂_lookup =>
+    rw [h₁_lookup] at h₂_lookup
+    injection h₂_lookup
+
+  | .add_mul _ _ _, .add_mul _ _ _
+  | .le _ _, .le _ _ 
+  | .and_or _ _ _, .and_or _ _ _ => rfl 
+
+  | .add_mul h_op _ _, .le _ _ 
+  | .le _ _, .add_mul h_op _ _ => cases h_op <;> contradiction
+
+  | .add_mul h₁_op _ _, .and_or h₂_op _ _
+  | .and_or h₁_op _ _, .add_mul h₂_op _ _ =>
+    cases h₁_op with
+    | inl h_add =>
+      cases h_add
+      cases h₂_op with
+      | inl h_and => cases h_and
+      | inr h_or => cases h_or
+    | inr h_mul =>
+      cases h_mul
+      cases h₂_op with
+      | inl h_and => cases h_and
+      | inr h_or => cases h_or
+      
+  | .le _ _, .and_or _ _ _
+  | .and_or _ _ _, .le _ _ => rfl 
 
 /-
   HINT: Remember about `generalizing` if the induction hypothesis needs to be
@@ -29,7 +60,28 @@ theorem BigstepE.deterministic
   {σ : State} {e : Exp} {v₁ v₂ : Value}
   : BigstepE σ e v₁ → BigstepE σ e v₂ → v₁ = v₂
 := by
-  sorry
+  intro h₁ h₂ 
+  match h₁, h₂ with
+  | .int _, .int _ | .bool _, .bool _ => rfl
+
+  | .var h₁_lookup, .var h₂_lookup => 
+    rw [h₁_lookup] at h₂_lookup
+    injection h₂_lookup
+
+  | .add h₁_left h₁_right, .add h₂_left h₂_right 
+  | .mul h₁_left h₁_right, .mul h₂_left h₂_right 
+  | .le h₁_left h₁_right, .le h₂_left h₂_right 
+  | .and h₁_left h₁_right, .and h₂_left h₂_right 
+  | .or h₁_left h₁_right, .or h₂_left h₂_right =>
+    have h_left := BigstepE.deterministic h₁_left h₂_left
+    have h_right := BigstepE.deterministic h₁_right h₂_right
+    match h_left, h_right with
+    | rfl, rfl => rfl
+
+  | .neg h₁_sub, .neg h₂_sub | .not h₁_sub, .not h₂_sub =>
+    have h_sub := BigstepE.deterministic h₁_sub h₂_sub
+    match h_sub with
+    | rfl => rfl
 
 /-
   We extend `ExpLang` to include statements, turning it into a simple imperative
@@ -53,10 +105,10 @@ inductive Stmt
   guard doesn't evaluate to a boolean) do not have any defined transitions. -/
 inductive BigstepS : State → Stmt → State → Prop
   | skip σ : BigstepS σ .skip σ
-  | assign {σ₁ σ₂ x rhs v}:
+  | assign {σ₁ σ₂ x rhs v} :
       BigstepE σ₁ rhs v → v ≠ .error → σ₂ = σ₁.insert x v →
       BigstepS σ₁ (.assign x rhs) σ₂
-  | seq {σ₁ σ₂ σ₃ s₁ s₂}:
+  | seq {σ₁ σ₂ σ₃ s₁ s₂} :
       BigstepS σ₁ s₁ σ₂ → BigstepS σ₂ s₂ σ₃ →
       BigstepS σ₁ (.seq s₁ s₂) σ₃
   | ifelse_tt {σ₁ σ₂ g tt ff} :
@@ -82,7 +134,33 @@ theorem BigstepS.deterministic
   {σ₁ σ₂ σ₃ : State} {s : Stmt}
   : BigstepS σ₁ s σ₂ → BigstepS σ₁ s σ₃ → σ₂ = σ₃
 := by
-  sorry
+  intro h₁ h₂ 
+  match h₁, h₂ with
+  | .skip _, .skip _ => rfl  
+  
+  | .assign h₁_e _ h₁_eq, .assign h₂_e _ h₂_eq =>
+    have h_v := BigstepE.deterministic h₁_e h₂_e
+    subst h_v h₁_eq h₂_eq
+    rfl
+    
+  | .seq h₁_a h₁_b, .seq h₂_a h₂_b =>
+    have h_mid := BigstepS.deterministic h₁_a h₂_a
+    subst h_mid
+    exact BigstepS.deterministic h₁_b h₂_b
+
+  | .ifelse_tt _ h₁_body, .ifelse_tt _ h₂_body 
+  | .ifelse_ff _ h₁_body, .ifelse_ff _ h₂_body => 
+    exact BigstepS.deterministic h₁_body h₂_body  
+
+  | .ifelse_tt h₁_guard _, .ifelse_ff h₂_guard _
+  | .ifelse_ff h₁_guard _, .ifelse_tt h₂_guard _ =>
+    have h_eq := BigstepE.deterministic h₁_guard h₂_guard
+    injection h_eq
+
+  | .whiledo_tt _ _ _, .whiledo_tt _ _ _ => sorry 
+  | .whiledo_tt _ _ _, .whiledo_ff _ => sorry 
+  | .whiledo_ff _, .whiledo_tt _ _ _ => sorry
+  | .whiledo_ff _, .whiledo_ff _ => sorry
 
 /-
   We will write an interpreter for statements. Because while loops may not
