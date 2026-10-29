@@ -1748,6 +1748,7 @@ topic::FINDING_THEOREMS
 
   - Finally, you could just guess the theorem name and see if it exists. This strategy isn't as silly as it sounds because Mathlib has very strict rules about how theorems are named that make the names fairly easy to guess (once you've internalized the rules): https://leanprover-community.github.io/contribute/naming.html.
 -/
+<<<<<<< HEAD
 
 /-
   Look for theorems that involve both a disjunction and a negation of the left
@@ -1762,6 +1763,8 @@ topic::FINDING_THEOREMS
   A natural language search-/
 #leansearch "a or b is the same as not a implies b."
 
+=======
+>>>>>>> be73bb186d2c426ca8dcec023012c50020c345dd
 end_topic FINDING_THEOREMS
 
 

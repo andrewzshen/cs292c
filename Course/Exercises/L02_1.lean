@@ -103,4 +103,3 @@ theorem ex1_5 : ¬P ∨ ¬Q → ¬(P ∧ Q) := by
 theorem ex1_6 : ¬P → (P → Q) := by
   intro hnP hP
   contradiction
-  

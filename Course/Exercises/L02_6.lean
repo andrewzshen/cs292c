@@ -63,4 +63,3 @@ theorem ex6_2 : ∀ (n : Nat), fact n ≥ 1 := by
     have h_sub : n + 1 - 1 = n := rfl
     rw [h_sub]
     nlinarith
- 

@@ -37,6 +37,7 @@ theorem ex5_2
   (h : g ∘ f = id)
   : inj f
 := by
+<<<<<<< HEAD
   unfold inj 
   intro x y hf
   have hg : g (f x) = g (f y) := by rw [hf]  
@@ -51,6 +52,10 @@ theorem ex5_2
   rw [h₁, h₂] at hg
   exact hg
     
+=======
+  sorry
+
+>>>>>>> be73bb186d2c426ca8dcec023012c50020c345dd
 /-
   HINT: the following theorems may be useful for `ex5_3`. Don't forget that
   `nlinarith` can solve some (not all) non-linear arithmetic goals. Ignore the
@@ -64,6 +69,7 @@ theorem ex5_3
   (h1 : f = fun z => a*z + b) (h2 : a ≠ 0)
   : bijection f
 := by
+<<<<<<< HEAD
   unfold bijection
   constructor
   · unfold inj 
@@ -80,3 +86,6 @@ theorem ex5_3
     exists (y - b) / a
     have h3 : a * ((y - b) / a) = y - b := mul_div_cancel₀ (y - b) h2 
     linarith
+=======
+  sorry
+>>>>>>> be73bb186d2c426ca8dcec023012c50020c345dd

@@ -2,7 +2,11 @@
   # EXERCISES FOR `L06`
 
   Fill in the `sorry` for the requested definitions. For each definition the
+<<<<<<< HEAD
   `#guard_msgs` below it should pass with no errors.
+=======
+  `#guard_msgs` in `L06_tests.lean` should pass with no errors.
+>>>>>>> be73bb186d2c426ca8dcec023012c50020c345dd
 -/
 
 import Course.CourseLib
