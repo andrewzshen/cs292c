@@ -34,7 +34,8 @@ theorem HasType.deterministic
   | .and_or _ _ _, .and_or _ _ _ => rfl 
 
   | .add_mul h_op _ _, .le _ _ 
-  | .le _ _, .add_mul h_op _ _ => cases h_op <;> contradiction
+  | .le _ _, .add_mul h_op _ _ => 
+    cases h_op <;> contradiction
 
   | .add_mul h₁_op _ _, .and_or h₂_op _ _
   | .and_or h₁_op _ _, .add_mul h₂_op _ _ =>
@@ -68,14 +69,14 @@ theorem BigstepE.deterministic
     rw [h₁_lookup] at h₂_lookup
     injection h₂_lookup
 
-  | .add h₁_left h₁_right, .add h₂_left h₂_right 
-  | .mul h₁_left h₁_right, .mul h₂_left h₂_right 
-  | .le h₁_left h₁_right, .le h₂_left h₂_right 
-  | .and h₁_left h₁_right, .and h₂_left h₂_right 
-  | .or h₁_left h₁_right, .or h₂_left h₂_right =>
-    have h_left := BigstepE.deterministic h₁_left h₂_left
-    have h_right := BigstepE.deterministic h₁_right h₂_right
-    match h_left, h_right with
+  | .add h₁_lhs h₁_rhs, .add h₂_lhs h₂_rhs
+  | .mul h₁_lhs h₁_rhs, .mul h₂_lhs h₂_rhs 
+  | .le  h₁_lhs h₁_rhs, .le  h₂_lhs h₂_rhs 
+  | .and h₁_lhs h₁_rhs, .and h₂_lhs h₂_rhs 
+  | .or  h₁_lhs h₁_rhs, .or  h₂_lhs h₂_rhs =>
+    have h_lhs := BigstepE.deterministic h₁_lhs h₂_lhs
+    have h_rhs := BigstepE.deterministic h₁_rhs h₂_rhs
+    match h_lhs, h_rhs with
     | rfl, rfl => rfl
 
   | .neg h₁_sub, .neg h₂_sub | .not h₁_sub, .not h₂_sub =>
@@ -155,12 +156,21 @@ theorem BigstepS.deterministic
   | .ifelse_tt h₁_guard _, .ifelse_ff h₂_guard _
   | .ifelse_ff h₁_guard _, .ifelse_tt h₂_guard _ =>
     have h_eq := BigstepE.deterministic h₁_guard h₂_guard
-    injection h_eq
+    injection h_eq 
+    contradiction
 
-  | .whiledo_tt _ _ _, .whiledo_tt _ _ _ => sorry 
-  | .whiledo_tt _ _ _, .whiledo_ff _ => sorry 
-  | .whiledo_ff _, .whiledo_tt _ _ _ => sorry
-  | .whiledo_ff _, .whiledo_ff _ => sorry
+  | .whiledo_tt _ h₁_body h₁_r, .whiledo_tt _ h₂_body h₂_r =>
+    have h_mid := BigstepS.deterministic h₁_body h₂_body
+    subst h_mid
+    exact BigstepS.deterministic h₁_r h₂_r
+    
+  | .whiledo_tt h₁_guard _ _, .whiledo_ff h₂_guard
+  | .whiledo_ff h₁_guard, .whiledo_tt h₂_guard _ _ => 
+    have h_eq := BigstepE.deterministic h₁_guard h₂_guard
+    injection h_eq 
+    contradiction
+
+  | .whiledo_ff _, .whiledo_ff _ => rfl 
 
 /-
   We will write an interpreter for statements. Because while loops may not
@@ -179,7 +189,32 @@ inductive Result
   evaluating expressions. -/
 @[simp]
 def clocked_eval (σ : State) (fuel : ℕ) (s : Stmt) : Result :=
-  sorry
+  match fuel with
+  | 0 => .timeout
+  | n + 1 =>
+    match s with
+    | .skip => .normal σ
+    | .assign x rhs =>
+      match Exp.eval σ rhs with
+      | .error => .error
+      | v => .normal (σ.insert x v)
+    | .seq s₁ s₂ =>
+      match clocked_eval σ n s₁ with
+      | .normal σ' => clocked_eval σ' n s₂ 
+      | res => res
+    | .ifelse guard tt ff =>
+      match Exp.eval σ guard with
+      | .bool true  => clocked_eval σ n tt 
+      | .bool false => clocked_eval σ n ff 
+      | _ => .error
+    | .whiledo guard body =>
+      match Exp.eval σ guard with
+      | .bool true  => 
+        match clocked_eval σ n body with 
+        | .normal σ' => clocked_eval σ' n (.whiledo guard body)
+        | res => res
+      | .bool false => .normal σ
+      | _ => .error
 
 /-
   This lemma will be useful for proving the interpreter is correct. Remember
@@ -187,9 +222,59 @@ def clocked_eval (σ : State) (fuel : ℕ) (s : Stmt) : Result :=
 lemma clocked_eval.monotone
   {σ₁ σ₂ : State} {s : Stmt} {fuel₁ : ℕ} (fuel₂ : ℕ)
   : clocked_eval σ₁ fuel₁ s = .normal σ₂ →
-      fuel₁ ≤ fuel₂ → clocked_eval σ₁ fuel₂ s = .normal σ₂
+    fuel₁ ≤ fuel₂ → clocked_eval σ₁ fuel₂ s = .normal σ₂
 := by
-  sorry
+  intro h_eval h_le
+  induction fuel₁ generalizing σ₁ σ₂ s fuel₂ with
+  | zero =>
+    simp [clocked_eval] at h_eval
+  | succ n ih =>
+    cases fuel₂ with
+    | zero => 
+      simp_all [clocked_eval] 
+    | succ m =>
+      cases s with
+      | skip | assign _ _ =>
+        simp_all [clocked_eval]
+      | seq s₁ s₂ =>
+        simp_all [clocked_eval]
+        cases h_s₁ : clocked_eval σ₁ n s₁ with
+        | normal σ' => 
+          rw [h_s₁] at h_eval
+          have ih₁ := ih m h_s₁ h_le
+          have ih₂ := ih m h_eval h_le
+          simp [ih₁, ih₂]
+        | _ =>
+          rw [h_s₁] at h_eval
+          contradiction
+      | ifelse guard tt ff =>
+        simp_all [clocked_eval] 
+        split at h_eval <;> try contradiction
+        · have ih_tt := ih m h_eval h_le
+          exact ih_tt
+        · have ih_ff := ih m h_eval h_le
+          exact ih_ff
+      | whiledo guard body =>
+        simp [clocked_eval] at h_eval ⊢
+        cases h_g : Exp.eval σ₁ guard with
+        | bool b =>
+          cases b with
+          | true =>
+            simp_all
+            cases h_body : clocked_eval σ₁ n body with
+            | normal σ' =>
+              rw [h_body] at h_eval
+              have ih_body := ih m h_body h_le
+              have ih_loop := ih m h_eval h_le
+              simp [ih_body, ih_loop]
+            | _ =>
+              rw [h_body] at h_eval
+              contradiction
+          | false =>
+            simp_all
+        | _ =>
+          rw [h_g] at h_eval
+          contradiction
 
 /-
   HINT: Remember that we have already proven `exp_eval_matches_semantics` and
@@ -200,7 +285,47 @@ theorem stmt_eval_matches_semantics
   {σ₁ σ₂ : State} {s : Stmt}
   : BigstepS σ₁ s σ₂ → ∃ n, clocked_eval σ₁ n s = (.normal σ₂)
 := by
-  sorry
+  intro h 
+  induction h with
+  | skip =>
+    exists 1
+
+  | assign h_exp _ h_eq =>
+    exists 1
+    have h_eval := exp_eval_matches_semantics h_exp
+    simp only [clocked_eval, h_eval, h_eq]
+
+  | seq h₁ h₂ ih₁ ih₂ =>
+    have ⟨n₁, h_n₁⟩ := ih₁
+    have ⟨n₂, h_n₂⟩ := ih₂
+    let n := n₁ + n₂
+    exists n + 1
+    have h₁' := clocked_eval.monotone n h_n₁ (by lia)
+    have h₂' := clocked_eval.monotone n h_n₂ (by lia)
+    simp [clocked_eval, h₁', h₂']
+
+  | ifelse_tt h_guard h_body ih
+  | ifelse_ff h_guard h_body ih =>
+    have ⟨n, h_n⟩ := ih
+    exists n + 1
+    have h' := clocked_eval.monotone n h_n (by lia)
+    have h_eval := exp_eval_matches_semantics h_guard
+    simp [clocked_eval, h_eval, h']
+
+  | whiledo_tt h_guard _ _ ih₁ ih₂ =>
+    have ⟨n₁, h_n₁⟩ := ih₁
+    have ⟨n₂, h_n₂⟩ := ih₂
+    let n := n₁ + n₂
+    exists n + 1
+    have h₁' := clocked_eval.monotone n h_n₁ (by lia)
+    have h₂' := clocked_eval.monotone n h_n₂ (by lia)
+    have h_eval := exp_eval_matches_semantics h_guard
+    simp [clocked_eval, h_eval, h₁', h₂']
+
+  | whiledo_ff h_guard =>
+    exists 1
+    have h_eval := exp_eval_matches_semantics h_guard
+    simp only [clocked_eval, h_eval]
 
 /-
   HINT: Remember that we have already proven `exp_semantics_matches_eval` and
@@ -210,4 +335,85 @@ theorem stmt_semantics_matches_eval
   {σ₁ σ₂ : State} {s : Stmt}
   : (∃ n, clocked_eval σ₁ n s = (.normal σ₂)) → BigstepS σ₁ s σ₂
 := by
-  sorry
+  intro ⟨n, h_eval⟩
+  induction n generalizing σ₁ σ₂ s with
+  | zero =>
+    simp_all [clocked_eval]
+  | succ n ih =>
+    cases s with
+    | skip =>
+      simp_all [clocked_eval]
+      subst h_eval
+      exact BigstepS.skip σ₁
+
+    | assign x rhs =>
+      simp_all [clocked_eval]
+      split at h_eval <;> try contradiction
+      rename_i hv
+      injection h_eval with h_eq
+      have h_exp : BigstepE σ₁ rhs (Exp.eval σ₁ rhs) := exp_semantics_matches_eval rfl hv
+      exact BigstepS.assign h_exp hv h_eq.symm 
+
+    | seq s₁ s₂ =>
+      simp_all [clocked_eval]
+      cases h_s₁ : clocked_eval σ₁ n s₁ with
+      | normal σ' =>
+        rw [h_s₁] at h_eval
+        have ih₁ := ih h_s₁
+        have ih₂ := ih h_eval
+        exact BigstepS.seq ih₁ ih₂
+      | _ =>
+        rw [h_s₁] at h_eval
+        contradiction
+
+    | ifelse guard tt ff =>
+      simp_all [clocked_eval]
+      cases h_guard : Exp.eval σ₁ guard with
+      | bool b =>
+        cases b with
+        | true =>
+          rw [h_guard] at h_eval
+          simp at h_eval
+          have ih_tt := ih h_eval
+          have h_exp : BigstepE σ₁ guard (.bool true) := 
+            exp_semantics_matches_eval h_guard.symm (by intro; contradiction)
+          exact BigstepS.ifelse_tt h_exp ih_tt
+        | false =>
+          rw [h_guard] at h_eval
+          simp at h_eval
+          have ih_ff := ih h_eval
+          have h_exp : BigstepE σ₁ guard (.bool false) := 
+            exp_semantics_matches_eval h_guard.symm (by intro; contradiction)
+          exact BigstepS.ifelse_ff h_exp ih_ff
+      | _ =>
+        rw [h_guard] at h_eval
+        contradiction
+
+    | whiledo guard body =>
+      simp_all [clocked_eval]
+      cases h_guard : Exp.eval σ₁ guard with
+      | bool b =>
+        cases b with
+        | true =>
+          rw [h_guard] at h_eval
+          simp at h_eval
+          cases h_body : clocked_eval σ₁ n body with
+          | normal σ' =>
+            rw [h_body] at h_eval
+            have ih_body := ih h_body
+            have ih_loop := ih h_eval
+            have h_e : BigstepE σ₁ guard (.bool true) := exp_semantics_matches_eval h_guard.symm (by intro; contradiction)
+            exact BigstepS.whiledo_tt h_e ih_body ih_loop
+          | _ =>
+            rw [h_body] at h_eval
+            contradiction
+        | false =>
+          rw [h_guard] at h_eval
+          simp at h_eval
+          subst h_eval
+          have h_exp : BigstepE σ₁ guard (.bool false) := 
+            exp_semantics_matches_eval h_guard.symm (by intro; contradiction)
+          exact BigstepS.whiledo_ff h_exp
+      | _ =>
+        rw [h_guard] at h_eval
+        contradiction
