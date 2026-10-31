@@ -23,32 +23,53 @@ topic::V1
 
 inductive Vec (α : Type) : ℕ → Type
   | nil : Vec α 0
-  | cons {n} : α → Vec α n → Vec α (n+1)
+  | cons {n} : α → Vec α n → Vec α (n + 1)
 
 namespace Vec
 
 variable {α β : Type}
 
-def head {n: ℕ} (v : Vec α (n+1)) : α :=
-  sorry
+def head {n : ℕ} (v : Vec α (n + 1)) : α :=
+  match v with
+  | .cons x _ => x 
 
-def tail {n: ℕ} (v : Vec α (n+1)) : Vec α n :=
-  sorry
+def tail {n : ℕ} (v : Vec α (n + 1)) : Vec α n :=
+  match v with
+  | .cons _ xs => xs
 
-def get {n: ℕ} (v : Vec α (n+1)) (i : Fin (n+1)) : α :=
-  sorry
+def get {n : ℕ} (v : Vec α (n + 1)) (i : Fin (n + 1)) : α :=
+  aux v i
+where
+  aux {m : ℕ} : Vec α m → Fin m → α
+    | .cons x _, ⟨0, _⟩ => x 
+    | .cons _ xs, ⟨i + 1, h⟩ => aux xs ⟨i, Nat.lt_of_succ_lt_succ h⟩
 
 def zip {n : ℕ} (v₁ : Vec α n) (v₂ : Vec β n) : Vec (α × β) n :=
-  sorry
+  match v₁, v₂ with
+  | .nil, .nil => .nil 
+  | .cons x xs, .cons y ys => .cons (x, y) (zip xs ys)
 
-def append {n m : ℕ} (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n+m) :=
-  sorry
+def append {n m : ℕ} (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n + m) :=
+  match v₁ with
+  | .nil => 
+    (Nat.zero_add m).symm ▸ v₂
+  | @Vec.cons _ k x xs =>
+    (Nat.succ_add k m) ▸ .cons x (append xs v₂) 
 
 def replicate (a : α) (num : ℕ) : Vec α num :=
-  sorry
+  match num with
+  | 0 => .nil
+  | n + 1 => .cons a (replicate a n)
 
 def filter {n: ℕ} (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
-  sorry
+  match v with
+  | .nil => ⟨0, .nil⟩ 
+  | .cons x xs =>
+    let ⟨k, res⟩ := filter xs P 
+    if P x then
+      ⟨k + 1, .cons x res⟩
+    else
+      ⟨k, res⟩
 
 /- --- TESTS --- -/
 
@@ -94,26 +115,32 @@ namespace Vec
 
 variable {α β : Type} {n m : ℕ}
 
-def head (v : Vec α (n+1)) : α :=
-  sorry
+def head (v : Vec α (n + 1)) : α :=
+  match h : v.ℓ with
+  | [] => by
+    have h_len : v.ℓ.length = n + 1 := v.len
+    rw [h] at h_len 
+    contradiction
+  | x :: _ => x 
 
-def tail (v : Vec α (n+1)) : Vec α n :=
-  sorry
+def tail (v : Vec α (n + 1)) : Vec α n :=
+  ⟨v.ℓ.tail, by simp [v.len]⟩
 
 def get (v : Vec α n) (i : Fin n) : α :=
-  sorry
+  v.ℓ[i.val]'(by rw [v.len]; exact i.isLt) 
 
 def zip (v₁ : Vec α n) (v₂ : Vec β n) : Vec (α × β) n :=
-  sorry
+  ⟨v₁.ℓ.zip v₂.ℓ, by simp [v₁.len, v₂.len]⟩
 
 def append (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n+m) :=
-  sorry
+  ⟨v₁.ℓ ++ v₂.ℓ, by simp [v₁.len, v₂.len]⟩
 
 def replicate (a : α) (num : ℕ) : Vec α num :=
-  sorry
+  ⟨List.replicate num a, List.length_replicate⟩ 
 
 def filter (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
-  sorry
+  let ℓ' := v.ℓ.filter P
+  ⟨ℓ'.length, ⟨ℓ', rfl⟩⟩ 
 
 /- --- TESTS --- -/
 
@@ -157,26 +184,33 @@ namespace Vec
 
 variable {α β : Type} {n m : ℕ}
 
-def head (v : Vec α (n+1)) : α :=
-  sorry
+def head (v : Vec α (n + 1)) : α :=
+  v ⟨0, Nat.succ_pos n⟩ 
 
-def tail (v : Vec α (n+1)) : Vec α n :=
-  sorry
+def tail (v : Vec α (n + 1)) : Vec α n :=
+  fun i => v ⟨i.val + 1, Nat.add_lt_add_right i.isLt 1⟩
 
 def get (v : Vec α n) (i : Fin n) : α :=
-  sorry
+  v i 
 
 def zip (v₁ : Vec α n) (v₂ : Vec β n) : Vec (α × β) n :=
-  sorry
+  fun i => (v₁ i, v₂ i) 
 
-def append (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n+m) :=
-  sorry
+def append (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n + m) :=
+  fun i =>
+    if h : i.val < n then
+      v₁ ⟨i.val, h⟩
+    else 
+      v₂ ⟨i.val - n, by lia⟩
 
 def replicate (a : α) (num : ℕ) : Vec α num :=
-  sorry
+  fun _ => a 
 
 def filter (v : Vec α n) (P : α → Bool) : Σ k, Vec α k :=
-  sorry
+  let ℓ := v 
+    |> List.ofFn 
+    |>.filter P
+  ⟨ℓ.length, fun i => ℓ[i.val]'(i.isLt)⟩
 
 /- --- TESTS --- -/
 
