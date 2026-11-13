@@ -54,7 +54,7 @@ def append {n m : ℕ} (v₁ : Vec α n) (v₂ : Vec α m) : Vec α (n + m) :=
   | .nil => 
     (Nat.zero_add m).symm ▸ v₂
   | @Vec.cons _ k x xs =>
-    (Nat.succ_add k m) ▸ .cons x (append xs v₂) 
+    Nat.succ_add k m ▸ .cons x (append xs v₂) 
 
 def replicate (a : α) (num : ℕ) : Vec α num :=
   match num with
