@@ -44,28 +44,52 @@ def selection_sort : List ℕ → List ℕ
 termination_by ℓ => ℓ.length
 decreasing_by grind
 
+@[grind ., simp]
 lemma select_min_perm
   (n : ℕ) (ℓ : List ℕ)
   : let (n₁, ℓ₁) := select_min n ℓ
     (n₁ :: ℓ₁).Perm (n :: ℓ)
 := by
-  sorry
+  grind [select_min, List.minimum_of_length_pos_mem, List.count_pos_iff]
 
+@[grind ., simp]
 lemma select_min_smallest
   (n : ℕ) (ℓ : List ℕ)
   : let (n₁, _) := select_min n ℓ
     (∀ m ∈ (n :: ℓ), n₁ ≤ m)
 := by
-  sorry
+  grind [select_min, List.minimum_of_length_pos_le_of_mem]
+
+@[grind →]
+lemma select_min_perm_of_perm {n : ℕ} {ℓ l : List ℕ}
+    (h : l.Perm (select_min n ℓ).2) :
+    ((select_min n ℓ).1 :: l).Perm (n :: ℓ) :=
+  (h.cons _).trans (select_min_perm n ℓ)
+
+@[grind →]
+lemma select_min_le {n m : ℕ} {ℓ : List ℕ}
+    (hm : m ∈ n :: ℓ) : (select_min n ℓ).1 ≤ m :=
+  select_min_smallest n ℓ m hm
+
+@[grind →]
+lemma mem_select_min_snd {n m : ℕ} {ℓ : List ℕ}
+    (hm : m ∈ (select_min n ℓ).2) : m ∈ n :: ℓ := by
+  simp only [select_min] at hm
+  exact List.mem_of_mem_erase hm
 
 lemma selection_sort_perm
   (ℓ : List ℕ)
   : (selection_sort ℓ).Perm ℓ
 := by
-  sorry
+  fun_induction selection_sort ℓ <;> grind
+  
+@[grind =]
+lemma mem_selection_sort {m : ℕ} {ℓ : List ℕ} :
+    m ∈ selection_sort ℓ ↔ m ∈ ℓ :=
+  (selection_sort_perm ℓ).mem_iff
 
 lemma selection_sort_sorted
   (ℓ : List ℕ)
   : sorted (selection_sort ℓ)
 := by
-  sorry
+  fun_induction selection_sort ℓ <;> grind [sorted, List.pairwise_cons]
